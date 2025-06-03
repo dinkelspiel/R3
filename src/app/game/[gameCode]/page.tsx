@@ -162,6 +162,7 @@ export default function Home() {
             setRoom((room) => ({
               ...room!,
               wins: packet.data.wins,
+              restorableRockets: { ...room!.currentRockets },
               ingameState: "winner",
             }));
             setStartingIn(packet.data.endUnix - currentTimeInSeconds());
@@ -170,6 +171,8 @@ export default function Home() {
             setRoom((room) => ({
               ...room!,
               currentBids: packet.data.newCurrentBids,
+              currentRockets: { ...room!.restorableRockets },
+              movesTaken: 0,
               currentVerifyingPlayerId: packet.data.newVerifyingPlayerId,
             }));
             console.log(
@@ -183,7 +186,7 @@ export default function Home() {
             setRoom((room) => ({
               ...room!,
               currentBids: {},
-              currentRockets: room!.restorableRockets,
+              currentRockets: { ...room!.restorableRockets },
               currentVerifyingPlayerId: null,
               movesTaken: 0,
               ingameState: "failed",

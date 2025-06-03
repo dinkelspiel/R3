@@ -471,6 +471,7 @@ const handleVerifyNext = (ws: WebSocket, endDelay: number, game: GameInfo) => {
 
   room.currentBids = newCurrentBids;
   room.currentVerifyingPlayerId = newVerifyingPlayerId;
+  room.currentRockets = { ...room.restorableRockets };
   gameRooms.set(game.id, room);
 
   broadcastToRoom(ws, game.id, {
@@ -702,7 +703,7 @@ const handlePlayerVerifyMovePacket = async (
     gameRoom.movesTaken = 0;
     gameRoom.currentBids = {};
     gameRoom.wins = updatedWins;
-    gameRoom.currentRockets = { ...gameRoom.restorableRockets };
+    gameRoom.restorableRockets = { ...gameRoom.currentRockets };
     gameRoom.ingameState = "winner";
     gameRooms.set(game.id, gameRoom);
 
