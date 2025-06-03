@@ -107,7 +107,9 @@ wss.on("connection", (ws) => {
             response = await handlePlayerVerifyResetPacket(ws, data);
             break;
           default:
-            console.log(`Unimplemented message ${data.type}`);
+            console.log(
+              `Unimplemented message ${(data as { type: string }).type}`,
+            );
         }
 
         if (response != null) {

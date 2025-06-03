@@ -188,7 +188,9 @@ export default function Home() {
             }));
             break;
           default:
-            throw new Error(`Unimplemented message ${packet.type}`);
+            throw new Error(
+              `Unimplemented message ${(packet as { type: string }).type}`,
+            );
         }
       };
 
