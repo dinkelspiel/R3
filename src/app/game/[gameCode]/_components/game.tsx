@@ -237,7 +237,7 @@ export const Game = () => {
           </Popover>
         </h2>
         {room.targetTile &&
-          ["nobid", "countdown"].includes(room.ingameState) && (
+          ["nobid", "countdown", "verify"].includes(room.ingameState) && (
             <div
               className={cn("grid", {
                 "grid-cols-2":

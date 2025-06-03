@@ -61,6 +61,11 @@ export type CtoSPlayerVerifyResetPacket = CtoSBasePacket & {
   type: "playerVerifyReset";
 };
 
+export type CtoSUpdateSettingsPacket = CtoSBasePacket & {
+  type: "updateSettings";
+  data: Settings;
+};
+
 export type CtoSPacket =
   | CtoSPlayerJoinPacket
   | CtoSRequestGameStartPacket
@@ -68,7 +73,8 @@ export type CtoSPacket =
   | CtoSPlayerChatPacket
   | CtoSPlayerBidPacket
   | CtoSPlayerVerifyMovePacket
-  | CtoSPlayerVerifyResetPacket;
+  | CtoSPlayerVerifyResetPacket
+  | CtoSUpdateSettingsPacket;
 
 export type PlayerInfo = {
   id: number;
@@ -95,6 +101,12 @@ export const compareBid = (a: Bid, b: Bid) => {
   return a.bid - b.bid;
 };
 
+export type Settings = {
+  startingDelay: number;
+  verificationTime: number;
+  biddingCountdownTime: number;
+};
+
 export type GameRoom = {
   ingameState:
     | "starting"
@@ -112,6 +124,7 @@ export type GameRoom = {
   movesTaken: number | null;
   wins: Record<number, TilesNoEmpty[]>;
   usedTiles: TilesNoEmpty[];
+  settings: Settings;
 };
 
 export type StoCPlayerJoinResponse = {
@@ -119,7 +132,7 @@ export type StoCPlayerJoinResponse = {
   data: {
     game: GameInfo;
     players: PlayerInfo[];
-    room: GameRoom | null;
+    room: GameRoom;
   };
 };
 

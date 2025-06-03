@@ -8,6 +8,7 @@ import type { CtoSRequestGameStartPacket } from "~/shared/game";
 import { Disconnected } from "./disconnected";
 import { Input } from "~/components/ui/input";
 import { Chat } from "./chat";
+import { Settings } from "./settings";
 
 export const Lobby = () => {
   const authUser = useAuthUser();
@@ -26,7 +27,7 @@ export const Lobby = () => {
         {connection !== "connected" && <Disconnected />}
         <h1 className="py-6 text-center text-2xl font-semibold">{game.name}</h1>
         {game.ownerId === authUser.id && (
-          <>
+          <div className="flex gap-2">
             <Button
               className="w-fit"
               onClick={() =>
@@ -39,7 +40,8 @@ export const Lobby = () => {
             >
               Start Game
             </Button>
-          </>
+            <Settings />
+          </div>
         )}
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="flex flex-col gap-2">

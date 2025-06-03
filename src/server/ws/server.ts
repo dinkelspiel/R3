@@ -17,6 +17,7 @@ import {
   type CtoSPlayerVerifyResetPacket,
   type CtoSRequestGameEndPacket,
   type CtoSRequestGameStartPacket,
+  type CtoSUpdateSettingsPacket,
   type GameInfo,
   type GameRoom,
   type StoCEventPacket,
@@ -107,6 +108,9 @@ wss.on("connection", (ws) => {
           case "playerVerifyReset":
             response = await handlePlayerVerifyResetPacket(ws, data);
             break;
+          case "updateSettings":
+            response = await handleUpdateSettingsPacket(ws, data);
+            break;
           default:
             console.log(
               `Unimplemented message ${(data as { type: string }).type}`,
@@ -164,6 +168,29 @@ const handlePlayerJoinPacket = async (
   }
   gamePlayers.get(game.id)?.add(ws);
 
+  if (!gameRooms.has(game.id)) {
+    const board = defaultGrid;
+    const rockets = generateRockets(board);
+
+    gameRooms.set(game.id, {
+      board,
+      restorableRockets: rockets,
+      currentRockets: rockets,
+      currentBids: {},
+      ingameState: "starting",
+      currentVerifyingPlayerId: null,
+      targetTile: null,
+      movesTaken: null,
+      wins: {},
+      usedTiles: [],
+      settings: {
+        startingDelay: 20,
+        biddingCountdownTime: 60,
+        verificationTime: 60,
+      },
+    });
+  }
+
   // Add player to persistent database of players in game if they aren't there already
   const existingPlayer = (
     await db
@@ -211,7 +238,7 @@ const handlePlayerJoinPacket = async (
           id: user!.id,
           username: user!.username,
         })),
-      room: game.state === "ingame" && gameRoom ? gameRoom : null,
+      room: gameRooms.get(game.id)!,
     },
   } satisfies StoCPlayerJoinResponse;
 };
@@ -262,9 +289,10 @@ const getRandomTile = (usedTiles: TilesNoEmpty[]) =>
   ]!;
 
 const startGame = (ws: WebSocket, game: GameInfo) => {
-  const startingDelay = 20;
-
   const room = gameRooms.get(game.id)!;
+
+  const startingDelay = room.settings.startingDelay;
+
   room.ingameState = "starting";
   gameRooms.set(game.id, room);
 
@@ -328,24 +356,6 @@ const handleRequestGameStartPacket = async (
       state: "ingame",
     })
     .where(eq(games.id, packet.gameId));
-
-  const board = defaultGrid;
-  const rockets = generateRockets(board);
-
-  if (!gameRooms.has(game.id)) {
-    gameRooms.set(game.id, {
-      board,
-      restorableRockets: rockets,
-      currentRockets: rockets,
-      currentBids: {},
-      ingameState: "starting",
-      currentVerifyingPlayerId: null,
-      targetTile: null,
-      movesTaken: null,
-      wins: {},
-      usedTiles: [],
-    });
-  }
 
   startGame(ws, game);
 
@@ -494,7 +504,7 @@ const gameStartVerification = async (ws: WebSocket, game: GameInfo) => {
   room!.currentVerifyingPlayerId = verifyingPlayerId;
   gameRooms.set(game.id, room!);
 
-  const endDelay = 60;
+  const endDelay = room!.settings.verificationTime;
 
   broadcastToRoom(ws, game.id, {
     type: "gameStartVerification",
@@ -552,7 +562,7 @@ const handlePlayerBidPacket = async (
   }
 
   let startedCountdown = false;
-  const endDelay = 60;
+  const endDelay = gameRoom.settings.biddingCountdownTime;
 
   if (gameRoom.ingameState !== "countdown") {
     gameRoom.ingameState = "countdown";
@@ -773,6 +783,36 @@ const handlePlayerVerifyResetPacket = async (
   broadcastToRoom(ws, game.id, {
     type: "playerVerifyReset",
   } satisfies StoCPlayerVerifyResetEvent);
+
+  return null;
+};
+
+const handleUpdateSettingsPacket = async (
+  ws: WebSocket,
+  packet: CtoSUpdateSettingsPacket,
+): Promise<StoCResponsePacket | null> => {
+  const authUser = await validateSessionToken(packet.sessionToken);
+  if (!authUser) {
+    return err("You are not logged in");
+  }
+
+  // Check if game exists
+  const game = (
+    await db.select().from(games).where(eq(games.id, packet.gameId))
+  )[0];
+  if (!game) {
+    return err("No game found with id");
+  }
+
+  if (authUser.id !== game.ownerId) {
+    return err("You are not the owner");
+  }
+
+  const room = gameRooms.get(game.id);
+  if (!room) return err("No room");
+
+  room.settings = packet.data;
+  gameRooms.set(game.id, room);
 
   return null;
 };

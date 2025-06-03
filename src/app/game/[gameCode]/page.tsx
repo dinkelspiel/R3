@@ -76,9 +76,7 @@ export default function Home() {
           case "playerJoinResponse":
             setGame((_) => packet.data.game);
             setPlayers(packet.data.players);
-            if (packet.data.room) {
-              setRoom((_) => packet.data.room);
-            }
+            setRoom((_) => packet.data.room);
             break;
           case "playerJoinedEvent":
             if (!players) break;
