@@ -1,0 +1,29 @@
+[33mcommit 95fbb5183efdd7dfa99d2b62596b51c1bb36702d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m
+Author: dinkelspiel <mail@keii.dev>
+Date:   Tue Jun 3 14:20:07 2025 +0200
+
+    fix: don't prefer nugit add .
+
+[33mcommit fbaf173d6100d04d3aea06ade08804c37b7a2d2f[m[33m ([m[1;31morigin/master[m[33m)[m
+Author: dinkelspiel <mail@keii.dev>
+Date:   Tue Jun 3 14:15:23 2025 +0200
+
+    fix: ToasterProps not imported as type
+
+[33mcommit 6930011a6e811c8f77ae7a81ce007489490b4bf8[m
+Author: dinkelspiel <mail@keii.dev>
+Date:   Tue Jun 3 14:13:37 2025 +0200
+
+    fix: type error when packet switch is exhaustive
+
+[33mcommit cb763ddbfc64355b52fa2b2b78b310fe995659f5[m
+Author: dinkelspiel <mail@keii.dev>
+Date:   Tue Jun 3 14:11:45 2025 +0200
+
+    fix: remove unused component
+
+[33mcommit 48f86c4397410a2a2c435e60fd9457bebc745a25[m
+Author: dinkelspiel <mail@keii.dev>
+Date:   Tue Jun 3 13:56:26 2025 +0200
+
+    feat: initial commit
