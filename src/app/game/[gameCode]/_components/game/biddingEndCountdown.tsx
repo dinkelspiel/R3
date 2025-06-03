@@ -11,7 +11,6 @@ export const BiddingEndCountdown = () => {
 
   useEffect(() => {
     setCounter(startingIn);
-    console.log(startingIn);
   }, [startingIn]);
 
   useEffect(() => {
@@ -25,7 +24,7 @@ export const BiddingEndCountdown = () => {
   return (
     <div className="flex flex-col items-center gap-2 p-4">
       <div className="text-xs text-neutral-600">Bidding ends in {counter}s</div>
-      <Progress value={(startingIn / 100) * counter * 100} />
+      <Progress value={(counter / startingIn) * 100} />
     </div>
   );
 };

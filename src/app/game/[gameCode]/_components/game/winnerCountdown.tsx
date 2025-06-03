@@ -28,7 +28,7 @@ export const WinnerCountdown = () => {
       <div className="text-xs text-neutral-600">
         Next game starts in {counter}s
       </div>
-      <Progress value={(startingIn / 100) * counter * 100} />
+      <Progress value={(counter / startingIn) * 100} />
     </div>
   );
 };

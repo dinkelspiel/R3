@@ -20,6 +20,7 @@ import {
   type GameInfo,
   type GameRoom,
   type StoCEventPacket,
+  type StoCGameCompletedEvent,
   type StoCGamEndEvent,
   type StoCGameRevealBoardEvent,
   type StoCGameStartEvent,
@@ -255,32 +256,39 @@ const generateRockets = (board: GridType): Rockets => {
   return rocketPositions as Rockets;
 };
 
-const getRandomTile = () =>
-  tilesNoEmpty[Math.floor(Math.random() * tilesNoEmpty.length)]!;
+const getRandomTile = (usedTiles: TilesNoEmpty[]) =>
+  tilesNoEmpty.filter((e) => !usedTiles.includes(e))[
+    Math.floor(Math.random() * tilesNoEmpty.length)
+  ]!;
 
 const startGame = (ws: WebSocket, game: GameInfo) => {
   const startingDelay = 20;
+
+  const room = gameRooms.get(game.id)!;
+  room.ingameState = "starting";
+  gameRooms.set(game.id, room);
 
   broadcastToRoom(ws, game.id, {
     type: "gameStartEvent",
     data: {
       startUnix: currentTimeInSeconds() + startingDelay, // Start game after startingDelay seconds
-      room: gameRooms.get(game.id)!,
+      room,
     },
   } satisfies StoCGameStartEvent);
 
   setTimeout(() => {
     (async () => {
-      const targetTile = getRandomTile();
-
       const room = gameRooms.get(game.id);
       if (!room) return;
+
+      const targetTile = getRandomTile(room.usedTiles);
 
       room.ingameState = "nobid";
       room.targetTile = targetTile;
       room.currentBids = {};
       room.currentRockets = room.restorableRockets;
       room.currentVerifyingPlayerId = null;
+      room.usedTiles.push(targetTile);
       gameRooms.set(game.id, room);
 
       broadcastToRoom(ws, game.id, {
@@ -335,6 +343,7 @@ const handleRequestGameStartPacket = async (
       targetTile: null,
       movesTaken: null,
       wins: {},
+      usedTiles: [],
     });
   }
 
@@ -419,7 +428,7 @@ const handleVerifyNext = (ws: WebSocket, endDelay: number, game: GameInfo) => {
   if (Object.entries(room.currentBids).length === 1) {
     room.ingameState = "failed";
     room.currentBids = {};
-    room.currentRockets = room.restorableRockets;
+    room.currentRockets = { ...room.restorableRockets };
     room.currentVerifyingPlayerId = null;
     room.movesTaken = 0;
     gameRooms.set(game.id, room);
@@ -462,6 +471,38 @@ const handleVerifyNext = (ws: WebSocket, endDelay: number, game: GameInfo) => {
       endUnix: currentTimeInSeconds() + endDelay,
     },
   } satisfies StoCGameVerifyNextEvent);
+
+  setTimeout(() => {
+    handleVerifyNext(ws, endDelay, game);
+  }, endDelay * 1000);
+};
+
+const gameStartVerification = async (ws: WebSocket, game: GameInfo) => {
+  const room = gameRooms.get(game.id);
+
+  if (room!.ingameState !== "countdown") {
+    return;
+  }
+
+  const verifyingPlayerId = parseInt(
+    Object.entries(room!.currentBids)
+      .sort((a, b) => compareBid(a[1], b[1]))[0]![0]
+      .toString(),
+  );
+
+  room!.ingameState = "verify";
+  room!.currentVerifyingPlayerId = verifyingPlayerId;
+  gameRooms.set(game.id, room!);
+
+  const endDelay = 60;
+
+  broadcastToRoom(ws, game.id, {
+    type: "gameStartVerification",
+    data: {
+      playerId: verifyingPlayerId,
+      endUnix: currentTimeInSeconds() + endDelay,
+    },
+  } satisfies StoCGameStartVerificationEvent);
 
   setTimeout(() => {
     handleVerifyNext(ws, endDelay, game);
@@ -518,33 +559,7 @@ const handlePlayerBidPacket = async (
     startedCountdown = true;
 
     setTimeout(() => {
-      (async () => {
-        const room = gameRooms.get(game.id);
-
-        const verifyingPlayerId = parseInt(
-          Object.entries(room!.currentBids)
-            .sort((a, b) => compareBid(a[1], b[1]))[0]![0]
-            .toString(),
-        );
-
-        room!.ingameState = "verify";
-        room!.currentVerifyingPlayerId = verifyingPlayerId;
-        gameRooms.set(game.id, room!);
-
-        const endDelay = 60;
-
-        broadcastToRoom(ws, packet.gameId, {
-          type: "gameStartVerification",
-          data: {
-            playerId: verifyingPlayerId,
-            endUnix: currentTimeInSeconds() + endDelay,
-          },
-        } satisfies StoCGameStartVerificationEvent);
-
-        setTimeout(() => {
-          handleVerifyNext(ws, endDelay, game);
-        }, endDelay * 1000);
-      })();
+      gameStartVerification(ws, game);
     }, endDelay * 1000); // setTimeout works in ms not seconds so i *1000
   }
 
@@ -643,7 +658,6 @@ const handlePlayerVerifyMovePacket = async (
     packet.data.direction,
   );
 
-  console.log("MovedTo:", movedTo);
   gameRoom.currentRockets[packet.data.rocket] = movedTo;
   gameRoom.movesTaken = gameRoom.movesTaken ? gameRoom.movesTaken + 1 : 1;
   gameRooms.set(game.id, gameRoom);
@@ -678,9 +692,28 @@ const handlePlayerVerifyMovePacket = async (
     gameRoom.movesTaken = 0;
     gameRoom.currentBids = {};
     gameRoom.wins = updatedWins;
+    gameRoom.currentRockets = { ...gameRoom.restorableRockets };
     gameRoom.ingameState = "winner";
     gameRooms.set(game.id, gameRoom);
 
+    const winner = Object.entries(gameRoom.wins).find((e) => e[1].length === 3);
+
+    // Someone won
+    if (winner) {
+      await db
+        .update(games)
+        .set({
+          winnerId: parseInt(winner[0].toString()),
+        })
+        .where(eq(games.id, game.id));
+
+      broadcastToRoom(ws, game.id, {
+        type: "gameCompleted",
+      } satisfies StoCGameCompletedEvent);
+      return null;
+    }
+
+    // No winner this round below
     const endDelay = 10;
 
     broadcastToRoom(ws, game.id, {

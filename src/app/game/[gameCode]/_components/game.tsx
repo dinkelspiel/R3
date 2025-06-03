@@ -115,7 +115,9 @@ export const Game = () => {
           </DialogContent>
         </Dialog>
 
-        {["countdown", "nobid", "verify"].includes(room.ingameState) &&
+        {["countdown", "nobid", "verify", "winner", "failed"].includes(
+          room.ingameState,
+        ) &&
           room.board && (
             <Grid
               grid={room.board}
@@ -234,40 +236,41 @@ export const Game = () => {
             </PopoverContent>
           </Popover>
         </h2>
-        {room.targetTile && (
-          <div
-            className={cn("grid", {
-              "grid-cols-2":
-                room.movesTaken !== null && room.ingameState === "verify",
-            })}
-          >
-            <div className="flex flex-col items-center gap-2 p-4">
-              <div className="text-xs text-neutral-600">The Target Is</div>
-              <div className="flex size-12 gap-2">
-                <Goal goalString={room.targetTile} />
-              </div>
-            </div>
-            {room.movesTaken !== null && room.ingameState === "verify" && (
+        {room.targetTile &&
+          ["nobid", "countdown"].includes(room.ingameState) && (
+            <div
+              className={cn("grid", {
+                "grid-cols-2":
+                  room.movesTaken !== null && room.ingameState === "verify",
+              })}
+            >
               <div className="flex flex-col items-center gap-2 p-4">
-                <div className="text-xs text-neutral-600">Moves Taken</div>
-                <div
-                  className={cn(
-                    "flex size-12 justify-center gap-2 text-5xl font-semibold",
-                    {
-                      "text-red-500":
-                        room.movesTaken >
-                        Object.entries(room.currentBids)
-                          .filter((e) => e[1] !== null)
-                          .sort((a, b) => compareBid(a[1], b[1]))[0]![1].bid,
-                    },
-                  )}
-                >
-                  {room.movesTaken}
+                <div className="text-xs text-neutral-600">The Target Is</div>
+                <div className="flex size-12 gap-2">
+                  <Goal goalString={room.targetTile} />
                 </div>
               </div>
-            )}
-          </div>
-        )}
+              {room.movesTaken !== null && room.ingameState === "verify" && (
+                <div className="flex flex-col items-center gap-2 p-4">
+                  <div className="text-xs text-neutral-600">Moves Taken</div>
+                  <div
+                    className={cn(
+                      "flex size-12 justify-center gap-2 text-5xl font-semibold",
+                      {
+                        "text-red-500":
+                          room.movesTaken >
+                          Object.entries(room.currentBids)
+                            .filter((e) => e[1] !== null)
+                            .sort((a, b) => compareBid(a[1], b[1]))[0]![1].bid,
+                      },
+                    )}
+                  >
+                    {room.movesTaken}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         {room.ingameState === "verify" &&
           room.currentVerifyingPlayerId === authUser!.id && (
             <div className="grid grid-cols-2 items-center gap-2 p-4">

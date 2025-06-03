@@ -29,22 +29,27 @@ const Page = () => {
         <h1 className="py-6 text-center text-2xl font-semibold">
           Ricochet Robots
         </h1>
-        <div className="flex gap-2">
+        <div className="flex justify-between gap-2">
           {!authUser && (
-            <>
+            <div className="flex items-center gap-2">
               <Link href={"/auth/login?state=login"}>
                 <Button>Login</Button>
               </Link>
               <Link href={"/auth/login?state=signup"}>
                 <Button>Create an Account</Button>
               </Link>
-            </>
+            </div>
           )}
           {authUser && (
             <>
               <Host />
-              <div className="ms-auto flex items-center">
-                Logged in as @{authUser.username}
+              <div className="flex items-center gap-2">
+                <div className="ms-auto flex items-center">
+                  Logged in as @{authUser.username}
+                </div>
+                <Link href="/api/auth/logout">
+                  <Button>Log out</Button>
+                </Link>
               </div>
             </>
           )}

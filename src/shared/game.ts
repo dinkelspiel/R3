@@ -111,6 +111,7 @@ export type GameRoom = {
   targetTile: TilesNoEmpty | null;
   movesTaken: number | null;
   wins: Record<number, TilesNoEmpty[]>;
+  usedTiles: TilesNoEmpty[];
 };
 
 export type StoCPlayerJoinResponse = {
@@ -215,6 +216,10 @@ export type StoCGameVerifyFailedEvent = {
   type: "gameVerifyFailed";
 };
 
+export type StoCGameCompletedEvent = {
+  type: "gameCompleted";
+};
+
 export type StoCEventPacket =
   | StoCPlayerJoinEvent
   | StoCPlayerChatEvent
@@ -227,6 +232,7 @@ export type StoCEventPacket =
   | StoCPlayerVerifyResetEvent
   | StoCPlayerVerifyCompletedEvent
   | StoCGameVerifyNextEvent
-  | StoCGameVerifyFailedEvent;
+  | StoCGameVerifyFailedEvent
+  | StoCGameCompletedEvent;
 
 export type StoCPacket = StoCEventPacket | StoCResponsePacket;

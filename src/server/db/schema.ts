@@ -79,6 +79,9 @@ export const games = createTable("games", (d) => ({
     .bigint({ mode: "number" })
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+  winnerId: d
+    .bigint({ mode: "number" })
+    .references(() => users.id, { onDelete: "cascade" }),
   createdAt: d
     .timestamp()
     .default(sql`CURRENT_TIMESTAMP`)
