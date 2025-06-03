@@ -18,6 +18,7 @@ import type { GameState } from "~/server/db/schema";
 import { toast } from "sonner";
 import { currentTimeInSeconds } from "~/lib/time";
 import { getCompletedMove } from "~/shared/movement";
+import { env } from "~/env";
 
 export default function Home() {
   const {
@@ -44,7 +45,10 @@ export default function Home() {
 
     const connectWebSocket = () => {
       setConnection("reconnecting");
-      socket = new WebSocket("ws://localhost:3001");
+      if (!process.env.NEXT_PUBLIC_WS_URL) {
+        throw new Error("NEXT_PUBLIC_WS_URL is not defined");
+      }
+      socket = new WebSocket(process.env.NEXT_PUBLIC_WS_URL);
 
       socket.onopen = () => {
         setConnection("connected");
