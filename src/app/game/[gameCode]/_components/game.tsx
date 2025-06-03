@@ -60,14 +60,13 @@ export const Game = () => {
     lastReadChatsLength,
     setLastReadChatsLength,
     connection,
+    highlightMovement,
+    setHighlightMovement,
   } = useGameStore();
   if (!game) throw Error("Unreachable");
 
   const authUser = useAuthUser();
   const [selectedBid, setSelectedBid] = useState<number | null>(null);
-  const [highlightMovement, setHighlightMovement] = useState<N2 | undefined>(
-    undefined,
-  );
 
   if (!room) {
     if (game.ownerId === authUser!.id) {

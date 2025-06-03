@@ -174,8 +174,8 @@ const handlePlayerJoinPacket = async (
 
     gameRooms.set(game.id, {
       board,
-      restorableRockets: rockets,
-      currentRockets: rockets,
+      restorableRockets: { ...rockets },
+      currentRockets: { ...rockets },
       currentBids: {},
       ingameState: "starting",
       currentVerifyingPlayerId: null,
@@ -184,7 +184,7 @@ const handlePlayerJoinPacket = async (
       wins: {},
       usedTiles: [],
       settings: {
-        startingDelay: 20,
+        startingDelay: 10,
         biddingCountdownTime: 60,
         verificationTime: 60,
       },
@@ -291,6 +291,8 @@ const getRandomTile = (usedTiles: TilesNoEmpty[]) =>
 const startGame = (ws: WebSocket, game: GameInfo) => {
   const room = gameRooms.get(game.id)!;
 
+  console.log(room);
+
   const startingDelay = room.settings.startingDelay;
 
   room.ingameState = "starting";
@@ -314,7 +316,7 @@ const startGame = (ws: WebSocket, game: GameInfo) => {
       room.ingameState = "nobid";
       room.targetTile = targetTile;
       room.currentBids = {};
-      room.currentRockets = room.restorableRockets;
+      room.currentRockets = { ...room.restorableRockets };
       room.currentVerifyingPlayerId = null;
       room.usedTiles.push(targetTile);
       gameRooms.set(game.id, room);
@@ -390,8 +392,6 @@ const handleRequestGameEndPacket = async (
       state: "lobby",
     })
     .where(eq(games.id, packet.gameId));
-
-  gameRooms.delete(game.id);
 
   broadcastToRoom(ws, game.id, {
     type: "gameEndEvent",
@@ -472,7 +472,10 @@ const handleVerifyNext = (ws: WebSocket, endDelay: number, game: GameInfo) => {
   room.currentBids = newCurrentBids;
   room.currentVerifyingPlayerId = newVerifyingPlayerId;
   room.currentRockets = { ...room.restorableRockets };
+  room.movesTaken = 0;
   gameRooms.set(game.id, room);
+
+  console.log("VerifyNext", room.currentRockets, room.restorableRockets);
 
   broadcastToRoom(ws, game.id, {
     type: "gameVerifyNext",
@@ -621,9 +624,13 @@ const isBoardWon = (
       rocket[1].y === targetTilePosition!.y,
   );
 
+  console.log("a");
+
   if (!rocketOnGoal) return false;
 
   const goalColor = getTileColor(targetTile);
+
+  console.log("b", goalColor, rocketOnGoal[0]);
 
   return goalColor === rocketOnGoal[0] || goalColor === "joker";
 };
@@ -662,12 +669,18 @@ const handlePlayerVerifyMovePacket = async (
     return err("You are not the current verifying player");
   }
 
+  console.log("Old", gameRoom.restorableRockets);
+
   const movedTo = getCompletedMove(
     gameRoom.board,
     gameRoom.currentRockets,
     packet.data.rocket,
     packet.data.direction,
   );
+
+  if (!movedTo) {
+    return err("Invalid move: no available space in that direction");
+  }
 
   gameRoom.currentRockets[packet.data.rocket] = movedTo;
   gameRoom.movesTaken = gameRoom.movesTaken ? gameRoom.movesTaken + 1 : 1;

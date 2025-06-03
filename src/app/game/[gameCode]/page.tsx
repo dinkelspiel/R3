@@ -33,6 +33,7 @@ export default function Home() {
     setRoom,
     setStartingIn,
     setForceUpdate,
+    setHighlightMovement,
   } = useGameStore();
   const params = useParams<{ gameCode: string }>();
   const authUser = useAuthUser();
@@ -97,7 +98,6 @@ export default function Home() {
             break;
           case "gameEndEvent":
             setGame((game) => ({ ...game!, state: "lobby" }));
-            setRoom((_) => null);
             break;
           case "gameRevealBoard":
             setRoom((_) => packet.data.room);
@@ -166,6 +166,7 @@ export default function Home() {
               ingameState: "winner",
             }));
             setStartingIn(packet.data.endUnix - currentTimeInSeconds());
+            setHighlightMovement(undefined);
             break;
           case "gameVerifyNext":
             setRoom((room) => ({
@@ -181,6 +182,7 @@ export default function Home() {
             );
             setForceUpdate(currentTimeInSeconds());
             setStartingIn(packet.data.endUnix - currentTimeInSeconds());
+            setHighlightMovement(undefined);
             break;
           case "gameVerifyFailed":
             setRoom((room) => ({
@@ -191,6 +193,7 @@ export default function Home() {
               movesTaken: 0,
               ingameState: "failed",
             }));
+            setHighlightMovement(undefined);
             break;
           default:
             throw new Error(

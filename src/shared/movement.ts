@@ -111,23 +111,27 @@ export const getCompletedMove = (
 
   let squares: N2[] = [];
 
-  console.log(rocket, rockets);
+  console.log(rocket, direction, rockets);
 
   switch (direction) {
     case "up":
       squares = getMovementSquaresUp(board, rockets, rockets[rocket]);
+      console.log("Squares", squares);
       movedTo = squares[squares.length - 1]!;
       break;
     case "down":
       squares = getMovementSquaresDown(board, rockets, rockets[rocket]);
+      console.log("Squares", squares);
       movedTo = squares[squares.length - 1]!;
       break;
     case "left":
       squares = getMovementSquaresLeft(board, rockets, rockets[rocket]);
+      console.log("Squares", squares);
       movedTo = squares[squares.length - 1]!;
       break;
     case "right":
       squares = getMovementSquaresRight(board, rockets, rockets[rocket]);
+      console.log("Squares", squares);
       movedTo = squares[squares.length - 1]!;
       break;
   }

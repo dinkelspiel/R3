@@ -6,7 +6,7 @@ import type {
   GameRoom,
   StoCPlayerJoinResponse,
 } from "~/shared/game";
-import type { GridType, Rockets } from "~/shared/grid";
+import type { GridType, N2, Rockets } from "~/shared/grid";
 
 type ConnectionType =
   | "connecting"
@@ -40,6 +40,9 @@ type GameStore = {
 
   forceUpdate: number;
   setForceUpdate: (startingIn: number) => void;
+
+  highlightMovement: N2 | undefined;
+  setHighlightMovement: (highlightMovement: N2 | undefined) => void;
 };
 
 export const useGameStore = create<GameStore>((set) => ({
@@ -70,4 +73,7 @@ export const useGameStore = create<GameStore>((set) => ({
 
   forceUpdate: 0,
   setForceUpdate: (forceUpdate) => set({ forceUpdate }),
+
+  highlightMovement: undefined,
+  setHighlightMovement: (highlightMovement) => set({ highlightMovement }),
 }));

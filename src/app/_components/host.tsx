@@ -13,25 +13,28 @@ import { useAuthUser } from "./authUserProvider";
 import { useEffect, useState } from "react";
 import { capitalizeFirst } from "~/lib/capitalizeFirst";
 import { api } from "~/trpc/react";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 
 export const Host = () => {
   const authUser = useAuthUser();
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     setName(capitalizeFirst(`${authUser?.username}'s Game`));
   }, []);
 
+  const router = useRouter();
+
   const createGame = api.game.create.useMutation({
     onSuccess(data) {
-      redirect(`/game/${data}`);
+      router.push(`/game/${data}`);
     },
   });
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="w-fit">Host</Button>
       </DialogTrigger>
@@ -52,12 +55,13 @@ export const Host = () => {
         </div>
         <DialogFooter>
           <Button
-            onClick={() =>
+            onClick={() => {
+              setOpen(false);
               createGame.mutate({
                 name,
                 password: password === "" ? undefined : password,
-              })
-            }
+              });
+            }}
           >
             Host
           </Button>
