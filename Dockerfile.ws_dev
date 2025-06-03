@@ -1,0 +1,10 @@
+FROM node:iron
+RUN npm install -g pnpm ts-node nodemon tsx
+WORKDIR /usr/src/app
+COPY package.json pnpm-lock.yaml* ./
+RUN echo Y | pnpm install
+COPY . .
+SHELL ["/bin/bash", "--login", "-c"]
+ENV SHELL bash
+EXPOSE 3001
+CMD ["nodemon", "--watch", "src/**", "--ext", "mts,ts,json", "--ignore", "src/**/*.spec.ts", "--exec", "tsx src/server/ws/server.ts"]
