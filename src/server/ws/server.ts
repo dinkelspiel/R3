@@ -259,7 +259,7 @@ const getRandomTile = () =>
   tilesNoEmpty[Math.floor(Math.random() * tilesNoEmpty.length)]!;
 
 const startGame = (ws: WebSocket, game: GameInfo) => {
-  const startingDelay = 1;
+  const startingDelay = 20;
 
   broadcastToRoom(ws, game.id, {
     type: "gameStartEvent",
@@ -511,7 +511,7 @@ const handlePlayerBidPacket = async (
   }
 
   let startedCountdown = false;
-  const endDelay = 5;
+  const endDelay = 60;
 
   if (gameRoom.ingameState !== "countdown") {
     gameRoom.ingameState = "countdown";
@@ -531,7 +531,7 @@ const handlePlayerBidPacket = async (
         room!.currentVerifyingPlayerId = verifyingPlayerId;
         gameRooms.set(game.id, room!);
 
-        const endDelay = 5;
+        const endDelay = 60;
 
         broadcastToRoom(ws, packet.gameId, {
           type: "gameStartVerification",
