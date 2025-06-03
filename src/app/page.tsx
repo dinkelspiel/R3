@@ -47,9 +47,9 @@ const Page = () => {
                 <div className="ms-auto flex items-center">
                   Logged in as @{authUser.username}
                 </div>
-                <Link href="/api/auth/logout">
+                <a href="/api/auth/logout">
                   <Button>Log out</Button>
-                </Link>
+                </a>
               </div>
             </>
           )}
