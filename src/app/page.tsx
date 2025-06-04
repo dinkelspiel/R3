@@ -26,8 +26,9 @@ const Page = () => {
   return (
     <div className="flex min-h-[100dvh] justify-center bg-neutral-50">
       <main className="flex w-[1024px] flex-col gap-4 p-4">
-        <h1 className="py-6 text-center text-2xl font-semibold">
-          Ricochet Robots
+        <h1 className="flex items-start justify-center gap-1 py-6 text-center text-2xl font-semibold">
+          Realtime Ricochet Robots{" "}
+          <div className="text-xs text-neutral-600">3</div>
         </h1>
         <div className="flex justify-between gap-2">
           {!authUser && (
