@@ -57,7 +57,7 @@ const Page = () => {
         </div>
         {!gamesInLobby.data && <Loader2 className="size-4 animate-spin" />}
         {gamesInLobby.data && (
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid gap-2 lg:grid-cols-3">
             {gamesInLobby.data.map((game) => (
               <Card key={game.id}>
                 <CardHeader>

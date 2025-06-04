@@ -82,6 +82,7 @@ export default function Home() {
           case "playerJoinedEvent":
             if (!players) break;
             if (packet.data.id === authUser!.id) break;
+            console.log("reached");
             setPlayers([...players, packet.data]);
             toast(`${packet.data.username} has joined the lobby.`);
             break;

@@ -16,7 +16,7 @@ import type { CtoSUpdateSettingsPacket } from "~/shared/game";
 import { useAuthUser } from "~/app/_components/authUserProvider";
 
 export const Settings = () => {
-  const { room, game } = useGameStore();
+  const { room, game, setRoom } = useGameStore();
   const authUser = useAuthUser();
   if (!room || !authUser || !game) return;
   return (
@@ -32,20 +32,27 @@ export const Settings = () => {
           <div key={setting} className="flex flex-col gap-2">
             <Label>{setting}</Label>
             <Input
-              onChange={(e) =>
+              onChange={(e) => {
+                setRoom((room) => ({
+                  ...room!,
+                  settings: {
+                    ...room!.settings,
+                    [setting]: parseInt(e.target.value),
+                  },
+                }));
                 sendPacket({
                   type: "updateSettings",
                   sessionToken: authUser.sessionToken,
                   gameId: game.id,
                   data: {
                     ...room.settings,
-                    [setting]: parseInt(e.target.value),
+                    [setting]: parseInt(e.target.value ?? 0),
                   },
-                } satisfies CtoSUpdateSettingsPacket)
-              }
-              defaultValue={
-                room.settings[setting as keyof typeof room.settings]
-              }
+                } satisfies CtoSUpdateSettingsPacket);
+              }}
+              value={(
+                room.settings[setting as keyof typeof room.settings] ?? 0
+              ).toString()}
               type="number"
             />
           </div>
